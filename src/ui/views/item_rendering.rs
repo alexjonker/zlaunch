@@ -402,10 +402,8 @@ pub fn render_action_indicator(label: &str, icon: Option<&str>) -> Div {
     let icon = icon.unwrap_or("↵").to_string();
 
     div()
-        .absolute()
-        .right(theme.action_indicator.right_position)
-        .top_0()
-        .bottom_0()
+        .flex_shrink_0()
+        .mr(theme.action_indicator.right_position)
         .flex()
         .flex_row()
         .items_center()
