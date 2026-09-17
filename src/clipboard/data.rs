@@ -23,6 +23,11 @@ lazy_static! {
             std::fs::create_dir_all(parent).ok();
         }
         let conn = Connection::open(&path).expect("Failed to open clipboard database");
+
+        // This feature makes sure that the clipboard.db shrinks when entries are deleted.
+        conn.execute_batch("PRAGMA auto_vacuum = FULL;")
+            .expect("Failed to set auto_vacuum");
+
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS clipboard_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
