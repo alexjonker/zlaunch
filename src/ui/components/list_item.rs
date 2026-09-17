@@ -1,8 +1,8 @@
 use crate::ui::theme::theme;
+use crate::ui::views::render_action_indicator;
 use gpui::{Div, ElementId, SharedString, Stateful, div, img, prelude::*, px};
 use std::path::PathBuf;
 use std::sync::Arc;
-use crate::ui::views::render_action_indicator;
 
 /// A standard list item component with icon, title, description, and action indicator.
 ///
