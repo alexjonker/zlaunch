@@ -49,13 +49,14 @@ pub fn init() {
         let db = DB.lock().unwrap();
         let mut stmt = db
             .prepare(
-                "SELECT content_type, text_value, image_width, image_height,
+                "SELECT id, content_type, text_value, image_width, image_height,
                         image_data, file_paths, rich_plain, rich_html, timestamp
                  FROM clipboard_history ORDER BY id DESC",
             )
             .expect("Failed to prepare query");
         let items: Vec<ClipboardItem> = stmt
             .query_map([], |row| {
+                let id = row.get::<_, i64>("id")?;
                 let ts =
                     UNIX_EPOCH + Duration::from_secs(row.get::<_, i64>("timestamp")?.max(0) as u64);
                 let content = match row.get::<_, String>("content_type")?.as_str() {
@@ -80,6 +81,7 @@ pub fn init() {
                     }
                 };
                 Ok(ClipboardItem {
+                    id,
                     content,
                     timestamp: ts,
                 })
@@ -104,7 +106,7 @@ pub fn add_item(content: ClipboardContent) {
         return;
     }
 
-    let item = ClipboardItem::new(content);
+    let mut item = ClipboardItem::new(content);
     let ts = item
         .timestamp
         .duration_since(UNIX_EPOCH)
@@ -152,6 +154,8 @@ pub fn add_item(content: ClipboardContent) {
         }
     }
 
+    item.id = db.last_insert_rowid();
+
     let max_history = config::config()
         .max_clipboard_history
         .filter(|&v| v > 0)
@@ -174,6 +178,23 @@ pub fn add_item(content: ClipboardContent) {
     drop(db);
 
     history.push_front(item);
+}
+
+/// Delete the selected clipboard item from the database.
+pub fn delete_item(id: i64) -> bool {
+    let mut history = CLIPBOARD_HISTORY.write().unwrap();
+    let history = history.as_mut().expect("Clipboard history not initialized");
+
+    history.retain(|item| item.id != id);
+
+    DB.lock()
+        .unwrap()
+        .execute(
+            "DELETE FROM clipboard_history WHERE id = ?1",
+            rusqlite::params![id],
+        )
+        .expect("Failed to delete clipboard item");
+    true
 }
 
 /// Check if two clipboard contents are the same.

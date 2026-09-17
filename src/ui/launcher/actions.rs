@@ -202,4 +202,27 @@ impl LauncherView {
             }
         }
     }
+
+    /// Delete the selected clipboard item.
+    pub fn delete_selected_clipboard(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
+        let list = self
+            .clipboard_mode_handler
+            .as_ref()
+            .expect("delete_selected_clipboard called with no clipboard_mode_handler")
+            .list_state()
+            .clone();
+
+        let Some(id) = list.read(cx).delegate().selected_item().map(|item| item.id) else {
+            return;
+        };
+
+        // Delete from the database.
+        crate::clipboard::data::delete_item(id);
+
+        list.update(cx, |state, cx| {
+            let d = state.delegate_mut();
+            d.set_items(crate::clipboard::data::search_items(""));
+            cx.notify();
+        });
+    }
 }

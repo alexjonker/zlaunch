@@ -6,6 +6,7 @@ use std::time::SystemTime;
 /// Represents a single clipboard history entry.
 #[derive(Clone, Debug)]
 pub struct ClipboardItem {
+    pub id: i64,
     pub content: ClipboardContent,
     pub timestamp: SystemTime,
 }
@@ -31,6 +32,7 @@ impl ClipboardItem {
     /// Create a new clipboard item with the current timestamp.
     pub fn new(content: ClipboardContent) -> Self {
         Self {
+            id: 0,
             content,
             timestamp: SystemTime::now(),
         }

@@ -43,7 +43,10 @@ pub use state::{ModeState, ViewMode};
 
 use std::sync::Arc;
 
-use gpui::{App, AppContext, Context, Entity, FocusHandle, Focusable, KeyBinding, Window, actions};
+use gpui::{
+    App, AppContext, Context, Entity, FocusHandle, Focusable, KeyBinding, Subscription, Window,
+    actions,
+};
 use gpui_component::input::{InputEvent, InputState};
 use gpui_component::list::ListState;
 
@@ -113,6 +116,8 @@ pub struct LauncherView {
     pub(crate) current_theme: LauncherTheme,
     /// Theme preview subscription
     pub(crate) _theme_preview_subscription: Option<gpui::Subscription>,
+    /// Keystroke interceptor
+    pub(crate) _keystroke_interceptor: Subscription,
     /// Input state
     pub(crate) input_state: Entity<InputState>,
     /// Focus handle
@@ -179,6 +184,22 @@ impl LauncherView {
 
         let focus_handle = cx.focus_handle();
 
+        // Intercept the Delete key so it can be used for deleting clipboard entries
+        let weak_launcher = cx.entity().downgrade();
+        let keystroke_interceptor = cx.intercept_keystrokes(move |event, window, cx| {
+            let keystroke = &event.keystroke;
+            if keystroke.key != "delete" || keystroke.modifiers.modified() {
+                return;
+            }
+            let Some(launcher) = weak_launcher.upgrade() else {
+                return;
+            };
+            launcher.update(cx, |launcher, cx| {
+                launcher.delete_selected_clipboard(window, cx)
+            });
+            cx.stop_propagation();
+        });
+
         // Hide when the view loses focus
         let on_hide_for_blur = on_hide.clone();
         cx.on_blur(&focus_handle, window, move |_this, _window, _cx| {
@@ -211,6 +232,7 @@ impl LauncherView {
             theme_mode_handler: None,
             current_theme: crate::config::load_configured_theme(),
             _theme_preview_subscription: None,
+            _keystroke_interceptor: keystroke_interceptor,
             input_state,
             focus_handle,
             on_hide,
