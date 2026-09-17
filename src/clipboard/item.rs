@@ -42,7 +42,7 @@ impl ClipboardItem {
 
         match &self.content {
             ClipboardContent::Text(text) => {
-                let first_line = text.lines().next().unwrap_or("");
+                let first_line = text.trim_start().lines().next().unwrap_or("");
                 truncate_preview_line(first_line, MAX_LENGTH)
             }
             ClipboardContent::Image { .. } => "[Image]".to_string(),
@@ -58,7 +58,7 @@ impl ClipboardItem {
                 }
             }
             ClipboardContent::RichText { plain, .. } => {
-                let first_line = plain.lines().next().unwrap_or("");
+                let first_line = plain.trim_start().lines().next().unwrap_or("");
                 truncate_preview_line(first_line, MAX_LENGTH)
             }
         }
