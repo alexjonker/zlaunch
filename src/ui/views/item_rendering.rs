@@ -6,7 +6,7 @@
 use crate::assets::PhosphorIcon;
 use crate::items::{DisplayItem, IconProvider, ListItem};
 use crate::ui::theme::theme;
-use gpui::{Div, ElementId, ImageFormat, SharedString, Stateful, div, img, prelude::*, px, svg};
+use gpui::{Div, ElementId, ImageFormat, SharedString, Stateful, div, img, prelude::*, svg};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -33,11 +33,7 @@ fn render_application(
 ) -> Stateful<Div> {
     let mut item = item_container(row, selected)
         .child(render_icon(app.icon_path.as_ref()))
-        .child(render_text_content(
-            &app.name,
-            app.description.as_deref(),
-            selected,
-        ));
+        .child(render_text_content(&app.name, app.description.as_deref()));
 
     if selected {
         item = item.child(render_action_indicator("Open", None));
@@ -57,11 +53,7 @@ fn render_window(win: &crate::items::WindowItem, selected: bool, row: usize) -> 
 
     let mut item = item_container(row, selected)
         .child(icon)
-        .child(render_text_content(
-            &win.title,
-            Some(&win.description),
-            selected,
-        ));
+        .child(render_text_content(&win.title, Some(&win.description)));
 
     if selected {
         item = item.child(render_action_indicator("Switch", None));
@@ -75,11 +67,7 @@ fn render_action(act: &crate::items::ActionItem, selected: bool, row: usize) -> 
     let icon = act.icon_name().and_then(PhosphorIcon::from_name);
     let mut item = item_container(row, selected)
         .child(render_phosphor_icon(icon))
-        .child(render_text_content(
-            &act.name,
-            act.description.as_deref(),
-            selected,
-        ));
+        .child(render_text_content(&act.name, act.description.as_deref()));
 
     if selected {
         item = item.child(render_action_indicator("Run", None));
@@ -93,11 +81,7 @@ fn render_submenu(sub: &crate::items::SubmenuItem, selected: bool, row: usize) -
     let icon = sub.icon_name().and_then(PhosphorIcon::from_name);
     let mut item = item_container(row, selected)
         .child(render_phosphor_icon(icon))
-        .child(render_text_content(
-            &sub.name,
-            sub.description.as_deref(),
-            selected,
-        ));
+        .child(render_text_content(&sub.name, sub.description.as_deref()));
 
     if selected {
         // Show arrow to indicate submenu
@@ -145,7 +129,7 @@ fn render_calculator(
     container = container.child(render_calculator_icon());
 
     // Add text content
-    container = container.child(render_calculator_content(calc, selected));
+    container = container.child(render_calculator_content(calc));
 
     // Add action indicator when selected
     if selected {
@@ -183,7 +167,7 @@ fn render_calculator_icon() -> Div {
 }
 
 /// Render the calculator text content (result only).
-fn render_calculator_content(calc: &crate::items::CalculatorItem, selected: bool) -> Div {
+fn render_calculator_content(calc: &crate::items::CalculatorItem) -> Div {
     let theme = theme();
 
     let result_color = if calc.is_error {
@@ -192,11 +176,9 @@ fn render_calculator_content(calc: &crate::items::CalculatorItem, selected: bool
         theme.item_title_color
     };
 
-    let max_width = theme.max_text_width(px(crate::config::launcher_size().0), selected);
-
     div()
         .h(theme.item_content_height)
-        .max_w(max_width)
+        .flex_1()
         .flex()
         .flex_col()
         .justify_center()
@@ -218,7 +200,7 @@ fn render_calculator_content(calc: &crate::items::CalculatorItem, selected: bool
 fn render_search(search: &crate::items::SearchItem, selected: bool, row: usize) -> Stateful<Div> {
     let mut item = item_container(row, selected)
         .child(render_phosphor_icon(Some(search.icon())))
-        .child(render_text_content(&search.name, None, selected));
+        .child(render_text_content(&search.name, None));
 
     if selected {
         item = item.child(render_action_indicator("Open", None));
@@ -231,7 +213,7 @@ fn render_search(search: &crate::items::SearchItem, selected: bool, row: usize) 
 fn render_ai(ai: &crate::items::AiItem, selected: bool, row: usize) -> Stateful<Div> {
     let mut item = item_container(row, selected)
         .child(render_phosphor_icon(Some(ai.icon())))
-        .child(render_text_content(&ai.name, ai.description(), selected));
+        .child(render_text_content(&ai.name, ai.description()));
 
     if selected {
         item = item.child(render_action_indicator("Ask", None));
@@ -354,7 +336,7 @@ pub fn render_phosphor_icon(icon: Option<PhosphorIcon>) -> Div {
 }
 
 /// Render the text content (title and optional description).
-pub fn render_text_content(name: &str, description: Option<&str>, selected: bool) -> Div {
+pub fn render_text_content(name: &str, description: Option<&str>) -> Div {
     let theme = theme();
 
     let name_element = div()
@@ -367,11 +349,9 @@ pub fn render_text_content(name: &str, description: Option<&str>, selected: bool
         .text_ellipsis()
         .child(SharedString::from(name.to_string()));
 
-    let max_width = theme.max_text_width(px(crate::config::launcher_size().0), selected);
-
     let mut content = div()
         .h(theme.item_content_height)
-        .max_w(max_width)
+        .flex_1()
         .flex()
         .flex_col()
         .justify_center()

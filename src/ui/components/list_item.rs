@@ -1,6 +1,6 @@
 use crate::ui::theme::theme;
 use crate::ui::views::render_action_indicator;
-use gpui::{Div, ElementId, SharedString, Stateful, div, img, prelude::*, px};
+use gpui::{Div, ElementId, SharedString, Stateful, div, img, prelude::*};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -193,7 +193,7 @@ fn render_placeholder_icon(container: Div, text: &str) -> Div {
 }
 
 /// Render the text content (title and optional description)
-fn render_text_content(name: &str, description: Option<&str>, selected: bool) -> Div {
+fn render_text_content(name: &str, description: Option<&str>, _selected: bool) -> Div {
     let theme = theme();
 
     let name_element = div()
@@ -206,11 +206,9 @@ fn render_text_content(name: &str, description: Option<&str>, selected: bool) ->
         .text_ellipsis()
         .child(SharedString::from(name.to_string()));
 
-    let max_width = theme.max_text_width(px(crate::config::launcher_size().0), selected);
-
     let mut content = div()
         .h(theme.item_content_height)
-        .max_w(max_width)
+        .flex_1()
         .flex()
         .flex_col()
         .justify_center()
